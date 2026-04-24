@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticket Scanner - RAAS DANDIYA EVENT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Scanner Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="gradient1" x1="2" y1="2" x2="22" y2="22">
+              <stop stop-color="#8b5cf6"/>
+              <stop offset="1" stop-color="#06b6d4"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        RAAS DANDIYA EVENT - Scanner
+      </a>
+      
+      <div class="nav-actions">
+        <button class="btn btn-ghost" onclick="backToMode()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Scanner Container -->
+  <div class="scanner-main-container">
+    <!-- Mode Selection -->
+    <div id="modeSelection" class="mode-selection">
+      <h1>Ticket Scanner</h1>
+      <p>Choose how you want to scan tickets</p>
+      
+      <div class="mode-options">
+        <div class="mode-card" onclick="selectMode('camera')">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          <h3>Camera Scanner</h3>
+          <p>Use device camera to scan QR codes</p>
+        </div>
+        
+        <div class="mode-card" onclick="selectMode('manual')">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          <h3>Manual Entry</h3>
+          <p>Manually enter ticket QR code data</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Camera Scanner Mode -->
+    <div id="cameraMode" class="scanner-mode" style="display: none;">
+      <div class="scanner-header">
+        <h2>Camera Scanner</h2>
+        <button class="btn btn-ghost" onclick="backToMode()">Back</button>
+      </div>
+      
+      <div class="scanner-content">
+        <div class="scanner-viewfinder">
+          <video id="video" playsinline autoplay muted></video>
+          <canvas id="canvas" style="display: none;"></canvas>
+          <div class="scanner-overlay">
+            <div class="scanner-corner tl"></div>
+            <div class="scanner-corner tr"></div>
+            <div class="scanner-corner bl"></div>
+            <div class="scanner-corner br"></div>
+            <div class="scanner-line"></div>
+          </div>
+        </div>
+        
+        <div class="scanner-info">
+          <p>Point your device camera at a QR code to scan</p>
+          <button class="btn btn-secondary" id="toggleFlash" onclick="toggleFlash()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 17V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2z"/>
+              <circle cx="12" cy="9" r="8"/>
+            </svg>
+            Toggle Flash
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Entry Mode -->
+    <div id="manualMode" class="scanner-mode" style="display: none;">
+      <div class="scanner-header">
+        <h2>Manual Entry</h2>
+        <button class="btn btn-ghost" onclick="backToMode()">Back</button>
+      </div>
+      
+      <div class="manual-entry-container">
+        <form id="manualForm" onsubmit="processManualEntry(event)">
+          <div class="form-group">
+            <label for="ticketIdInput">Ticket ID</label>
+            <input 
+              type="text" 
+              id="ticketIdInput" 
+              placeholder='Enter ticket ID (e.g., TKT1776851902101krx126bfr)'
+              autocomplete="off"
+            />
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: var(--space-sm);">
+              Found on your ticket confirmation email
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: var(--space-lg) 0; color: var(--text-muted);">
+            <p>— OR —</p>
+          </div>
+          
+          <div class="form-group">
+            <label for="qrCodeInput">QR Code Data</label>
+            <textarea 
+              id="qrCodeInput" 
+              placeholder='Paste QR code data here...'
+              rows="4"
+              autocomplete="off"
+            ></textarea>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: var(--space-sm);">
+              Copy the full QR code text if you have it
+            </p>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: var(--space-lg);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Verify Ticket
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scan Result Modal -->
+  <div id="scanResultModal" class="modal">
+    <div class="scan-result-card">
+      <button class="modal-close" onclick="closeScanResult()">×</button>
+      
+      <div id="resultContent"></div>
+      
+      <button class="btn btn-secondary btn-lg" onclick="scanAgain()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Scan Another
+      </button>
+    </div>
+  </div>
+
+  <script type="module" src="scan.js"></script>
+</body>
+</html>

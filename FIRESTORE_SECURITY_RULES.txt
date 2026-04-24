@@ -1,0 +1,179 @@
+// ============================================
+// FIRESTORE SECURITY RULES
+// RAAS DANDIYA EVENT - Complete Role-Based Security
+// ============================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    // Check if user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+    
+    // Get user document safely (returns null if doesn't exist)
+    function getUserDoc() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+        : null;
+    }
+    
+    // Get user role safely
+    function getUserRole() {
+      let doc = getUserDoc();
+      return doc != null ? doc.role : null;
+    }
+    
+    // Check if user has owner access (FULL SYSTEM ACCESS)
+    function isOwner() {
+      let role = getUserRole();
+      return isAuth() && role == "owner";
+    }
+    
+    // 🔐 STRICT: Check if user is ONLY owner (extra security)
+    function isStrictOwner() {
+      let doc = getUserDoc();
+      return isAuth() && doc != null && doc.role == "owner" && doc.phone == "+917738427824";
+    }
+    
+    // Check if user has scanner access (SCANNER OR OWNER)
+    function isScanner() {
+      let role = getUserRole();
+      return isAuth() && (role == "scanner" || role == "owner");
+    }
+    
+    // Check if user is regular user (USER OR OWNER)
+    function isRegularUser() {
+      let role = getUserRole();
+      return isAuth() && (role == "user" || role == "owner");
+    }
+    
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if isAuth() && request.auth.uid == userId;
+      
+      // Users can update their own profile (except role)
+      allow update: if isAuth() && request.auth.uid == userId && 
+        !request.resource.data.diff(resource.data).affectedKeys().has('role');
+      
+      // Owners can read/write all user documents
+      allow read, write: if isOwner();
+      
+      // CRITICAL: Allow user creation during first OTP login
+      // Only the authenticated user can create their own document
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================
+    // TICKETS COLLECTION
+    // ============================================
+    match /tickets/{ticketId} {
+      // Users can read only their own tickets
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      
+      // Owners can read all tickets
+      allow read: if isOwner();
+      
+      // Users can create their own tickets during booking
+      // CRITICAL: userId must match auth.uid, and required fields must exist
+      allow create: if isAuth() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.get('ticketId', '') is string &&
+        request.resource.data.get('eventId', '') is string &&
+        request.resource.data.get('ticketType', '') is string &&
+        request.resource.data.get('used', false) == false;
+      
+      // Owners can update any ticket
+      allow update: if isOwner();
+      
+      // Scanners can mark tickets as used (update only)
+      allow update: if isScanner() && 
+        request.resource.data.used == true && 
+        resource.data.used == false;
+      
+      // Nobody can delete tickets
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // EVENTS COLLECTION
+    // ============================================
+    match /events/{eventId} {
+      // Everyone can read events (public listing)
+      allow read: if true;
+      
+      // 🔐 STRICT: Only authorized owner can create/update/delete events
+      // Owner must have: role="owner" AND phone="+917738427824"
+      allow create, update, delete: if isStrictOwner();
+    }
+    
+    // ============================================
+    // ANALYTICS COLLECTION
+    // ============================================
+    match /analytics/{document=**} {
+      // Only owners can read analytics
+      allow read: if isOwner();
+      
+      // System can write analytics (owner only)
+      allow write: if isOwner();
+    }
+    
+    // ============================================
+    // DEFAULT DENY
+    // ============================================
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// ============================================
+// SETUP INSTRUCTIONS
+// ============================================
+/*
+1. GO TO Firebase Console → Firestore → Rules
+
+2. COPY the above rules into the Rules editor
+
+3. PUBLISH the rules
+
+4. TO GRANT OWNER ACCESS:
+   - Go to Firestore → users collection
+   - Find your user document (uid = your phone login uid)
+   - Update the "role" field to "owner"
+   - Example:
+     users/{yourUid}
+     {
+       userId: "yourUid",
+       phone: "+91...",
+       role: "owner",
+       createdAt: timestamp,
+       lastLogin: timestamp
+     }
+
+5. ROLES REFERENCE:
+   - "user" → Only access own tickets, cannot manage events
+   - "admin" → Full admin access, cannot scan
+   - "scanner" → Can scan QR codes, cannot manage events
+   - "owner" → FULL ACCESS (admin + scanner + user rights)
+
+6. VERIFY ACCESS:
+   - User: Can only see own tickets
+   - Admin: Can manage events (admin.html accessible)
+   - Scanner: Can scan tickets (scan.html accessible)
+   - Owner: Can do EVERYTHING
+
+7. TROUBLESHOOTING:
+   - If access denied, check user role in Firestore
+   - If rules fail, check auth.uid matches users/{uid}
+   - Rules evaluate based on current authenticated user
+*/

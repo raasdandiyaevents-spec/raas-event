@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Tickets - RAAS DANDIYA EVENT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="gradient1" x1="2" y1="2" x2="22" y2="22">
+              <stop stop-color="#8b5cf6"/>
+              <stop offset="1" stop-color="#06b6d4"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        RAAS DANDIYA EVENT
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="tickets.html">My Tickets</a></li>
+      </ul>
+      
+      <div class="nav-actions">
+        <button class="btn btn-primary" onclick="window.location.href='events.html'">
+          Explore Events
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Navigation -->
+  <nav class="mobile-nav">
+    <div class="mobile-nav-items">
+      <a href="index.html" class="mobile-nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Home
+      </a>
+      <a href="events.html" class="mobile-nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Events
+      </a>
+      <a href="tickets.html" class="mobile-nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 9a3 3 0 015-2.236A3 3 0 019.5 9a3 3 0 005.196 2.236A3 3 0 0117 9a3 3 0 015 2.236V15a2 2 0 01-2 2H4a2 2 0 01-2-2V9z"/>
+          <path d="M2 17v2a2 2 0 002 2h16a2 2 0 002-2v-2"/>
+        </svg>
+        Tickets
+      </a>
+    </div>
+  </nav>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- User Dashboard -->
+  <main class="page active">
+    <div class="section" style="padding-top: 120px;">
+      <div class="section-header">
+        <span class="section-badge">Dashboard</span>
+        <h2 class="section-title">My <span class="text-gradient">Tickets</span></h2>
+      </div>
+      
+      <!-- Tabs -->
+      <div class="filter-chips" style="justify-content: center; margin-bottom: var(--space-xl); display: flex;">
+        <button class="filter-chip active" onclick="window.filterTickets('upcoming')">📅 Upcoming</button>
+        <button class="filter-chip" onclick="window.filterTickets('past')">📋 Past</button>
+      </div>
+      
+      <div id="user-tickets-container">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </main>
+
+  <!-- QR Code Modal -->
+  <div id="qrModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg);">
+        <h2 style="margin: 0;">Your Ticket</h2>
+        <button class="modal-close" onclick="window.closeQRModal()">×</button>
+      </div>
+      <div id="qrCode" style="text-align: center; margin: var(--space-lg) 0;"></div>
+      <div id="ticketDetails" style="text-align: left; margin: var(--space-lg) 0;"></div>
+      <div style="display: flex; gap: var(--space-md);">
+        <button class="btn btn-primary" onclick="window.downloadTicketPDF(currentTicketId)" style="flex: 1;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download PDF
+        </button>
+        <button class="btn btn-secondary" onclick="window.closeQRModal()" style="flex: 1;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './firebase.js';
+    import * as Auth from './auth.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    
+    window.auth = auth;
+    window.db = db;
+    window.Auth = Auth;
+
+    // Initialize persistence and auth listener
+    Auth.initializePersistence();
+    Auth.initializeAuthStateListener();
+
+    let currentFilterTab = 'upcoming';
+    let currentTicketId = null;
+    let allTickets = [];
+
+    // Set initial opacity to 0 to prevent flicker
+    document.body.style.opacity = "0";
+
+    // Check authentication using Firebase's onAuthStateChanged
+    onAuthStateChanged(auth, (user) => {
+      // Show content once auth state is determined
+      document.body.style.opacity = "1";
+      
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // User is logged in, initialize page
+      initParticles();
+      loadAndDisplayTickets();
+    });
+
+    function initParticles() {
+      const container = document.getElementById('particles');
+      if (container) {
+        for (let i = 0; i < 50; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.animationDelay = Math.random() * 20 + 's';
+          particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+          container.appendChild(particle);
+        }
+      }
+    }
+
+    async function loadAndDisplayTickets() {
+      try {
+        // Get only user's tickets
+        const userTickets = await Auth.getUserTickets();
+        allTickets = userTickets;
+
+        console.log('✓ Loaded', allTickets.length, 'tickets for user:', window.currentUserId);
+        displayUserTickets();
+      } catch (error) {
+        console.error('❌ Error loading tickets:', error);
+        const container = document.getElementById('user-tickets-container');
+        if (container) {
+          container.innerHTML = '<div style="text-align: center; padding: var(--space-3xl); color: #ff6b6b;">Error loading tickets. Please refresh the page.</div>';
+        }
+      }
+    }
+
+    function displayUserTickets() {
+      const container = document.getElementById('user-tickets-container');
+      if (!container) return;
+
+      const now = new Date();
+      let filteredTickets = allTickets;
+
+      if (currentFilterTab === 'upcoming') {
+        filteredTickets = allTickets.filter(ticket => {
+          const ticketDate = new Date(ticket.eventDate);
+          return ticketDate >= now;
+        });
+      } else if (currentFilterTab === 'past') {
+        filteredTickets = allTickets.filter(ticket => {
+          const ticketDate = new Date(ticket.eventDate);
+          return ticketDate < now;
+        });
+      }
+
+      if (filteredTickets.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: var(--space-3xl); color: var(--text-muted);">
+            <p style="font-size: 1.2rem; margin-bottom: var(--space-lg);">No ${currentFilterTab} tickets found</p>
+            <a href="events.html" class="btn btn-primary">Book Now</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg);">
+          ${filteredTickets.map(ticket => `
+            <div class="glass-card" style="padding: var(--space-lg); border-radius: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-md);">
+                <div>
+                  <h3 style="margin: 0; font-size: 1.1rem;">${ticket.eventTitle || ticket.eventName || 'Event Ticket'}</h3>
+                  <p style="color: var(--text-muted); font-size: 0.9rem; margin: 5px 0;">Ticket ID: ${ticket.ticketId ? ticket.ticketId.substring(0, 20) + '...' : ticket.id.substring(0, 20) + '...'}</p>
+                </div>
+                <span style="background: ${ticket.used ? '#ef4444' : ticket.status === 'active' ? '#10b981' : '#6b7280'}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">${ticket.used ? 'USED' : ticket.status || 'ACTIVE'}</span>
+              </div>
+
+              <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: var(--space-md); margin-bottom: var(--space-md);">
+                <p style="margin: 5px 0;"><strong>Name:</strong> ${ticket.customerName || 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Type:</strong> ${ticket.ticketType || 'Standard'}</p>
+                <p style="margin: 5px 0;"><strong>Date:</strong> ${ticket.eventDate ? new Date(ticket.eventDate).toLocaleDateString() : 'N/A'}</p>
+                <p style="margin: 5px 0; color: #10b981; font-weight: 600;"><strong>Price:</strong> ₹${ticket.price || 0}</p>
+              </div>
+
+              <div style="display: flex; gap: var(--space-sm);">
+                <button class="btn btn-primary btn-sm" onclick="window.showQRCode('${ticket.id}')" style="flex: 1;" ${ticket.used ? 'disabled' : ''}>View QR</button>
+                <button class="btn btn-secondary btn-sm" onclick="window.downloadTicketPDF('${ticket.id}')" style="flex: 1;">Download</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    window.filterTickets = function(tab) {
+      currentFilterTab = tab;
+
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      displayUserTickets();
+    };
+
+    // Generate unique formatted ticket code
+    function generateTicketCode(ticketId) {
+      const hash = ticketId.replace(/[^0-9]/g, '').slice(-12).padStart(12, '0');
+      const parts = [
+        hash.slice(0, 2).toUpperCase(),
+        hash.slice(2, 5),
+        hash.slice(5, 8),
+        hash.slice(8, 11)
+      ];
+      return parts.join(' ');
+    }
+
+    window.showQRCode = function(ticketId) {
+      currentTicketId = ticketId;
+      const ticket = allTickets.find(t => t.id === ticketId);
+      if (!ticket) {
+        console.error('Ticket not found:', ticketId);
+        return;
+      }
+
+      const ticketCode = generateTicketCode(ticket.ticketId || ticket.id);
+      const formattedINR = (amount) => '₹' + (amount || 0).toLocaleString('en-IN');
+
+      const qrDiv = document.getElementById('qrCode');
+      qrDiv.innerHTML = '';
+
+      // Create professional QR container with gradient background
+      const qrContainer = document.createElement('div');
+      qrContainer.style.cssText = `
+        background: linear-gradient(135deg, #f5e6d3 0%, #fef3e8 100%);
+        padding: 2rem;
+        border-radius: 1.5rem;
+        text-align: center;
+        border: 2px solid #e8d5c4;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        margin-bottom: 1.5rem;
+      `;
+
+      const qrWhiteContainer = document.createElement('div');
+      qrWhiteContainer.style.cssText = `
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      `;
+
+      const qrCodeElement = document.createElement('div');
+      qrCodeElement.id = 'qrcode-' + ticketId;
+      qrWhiteContainer.appendChild(qrCodeElement);
+      qrContainer.appendChild(qrWhiteContainer);
+
+      const codeText = document.createElement('p');
+      codeText.textContent = ticketCode;
+      codeText.style.cssText = `
+        font-family: 'Courier New', monospace;
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #2c2c2c;
+        letter-spacing: 0.15em;
+        margin: 0;
+      `;
+      qrContainer.appendChild(codeText);
+
+      const codeLabel = document.createElement('p');
+      codeLabel.textContent = 'TICKET CODE';
+      codeLabel.style.cssText = `
+        font-size: 0.75rem;
+        color: #666;
+        margin-top: 0.5rem;
+        letter-spacing: 0.05em;
+      `;
+      qrContainer.appendChild(codeLabel);
+
+      qrDiv.appendChild(qrContainer);
+
+      // Generate QR code
+      setTimeout(() => {
+        try {
+          new QRCode(document.getElementById('qrcode-' + ticketId), {
+            text: ticket.ticketId || ticket.id,
+            width: 200,
+            height: 200,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+          });
+        } catch (e) {
+          console.error('Error generating QR code:', e);
+        }
+      }, 50);
+
+      // Populate ticket details
+      const detailsDiv = document.getElementById('ticketDetails');
+      detailsDiv.innerHTML = `
+        <div style="background: var(--bg-tertiary); padding: var(--space-lg); border-radius: var(--radius-lg);">
+          <p><strong>Event:</strong> ${ticket.eventTitle || ticket.eventName || 'N/A'}</p>
+          <p><strong>Date:</strong> ${ticket.eventDate ? new Date(ticket.eventDate).toLocaleDateString('en-IN') : 'N/A'}</p>
+          <p><strong>Time:</strong> ${ticket.eventTime || 'N/A'}</p>
+          <p><strong>Ticket Type:</strong> ${ticket.ticketType || 'Standard'}</p>
+          <p><strong>Customer:</strong> ${ticket.customerName || 'N/A'}</p>
+          <p><strong>Price:</strong> ${formattedINR(ticket.price)}</p>
+          <p><strong>Status:</strong> ${ticket.used ? '❌ USED' : '✓ ACTIVE'}</p>
+        </div>
+      `;
+
+      // Show modal
+      const modal = document.getElementById('qrModal');
+      if (modal) {
+        modal.style.display = 'flex';
+      }
+    };
+
+    window.closeQRModal = function() {
+      const modal = document.getElementById('qrModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    };
+
+    window.downloadTicketPDF = function(ticketId) {
+      const ticket = allTickets.find(t => t.id === ticketId);
+      if (!ticket) return;
+
+      alert('PDF download feature coming soon. Ticket ID: ' + ticket.ticketId);
+    };
+  </script>
+</body>
+</html>

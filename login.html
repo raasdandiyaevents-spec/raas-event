@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - RAAS DANDIYA EVENT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Main Container -->
+  <div class="auth-container">
+    <div class="auth-card">
+      <!-- Logo -->
+      <div class="auth-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="gradient1" x1="2" y1="2" x2="22" y2="22">
+              <stop stop-color="#8b5cf6"/>
+              <stop offset="1" stop-color="#06b6d4"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- Title -->
+      <h1 class="auth-title">Welcome Back</h1>
+      <p class="auth-subtitle">Login to book your tickets for RAAS Dandiya Event</p>
+
+      <!-- reCAPTCHA Container -->
+      <div id="recaptcha-container"></div>
+
+      <!-- Phase 1: Phone Number Input -->
+      <div id="phase-1" class="auth-phase active">
+        <div class="input-group">
+          <label for="phoneInput">Phone Number</label>
+          <input 
+            type="tel" 
+            id="phoneInput" 
+            value="+91 "
+            placeholder="+91 XXXXXXXXXX" 
+            class="auth-input"
+            maxlength="14"
+          >
+          <small class="text-muted">Enter your 10-digit phone number</small>
+        </div>
+
+        <button class="btn btn-primary w-full" id="sendOtpBtn" onclick="handleSendOTP()">
+          Send OTP
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+        <p class="auth-footnote">
+          Don't have an account? No problem! We'll create one for you after verification.
+        </p>
+      </div>
+
+      <!-- Phase 2: OTP Verification -->
+      <div id="phase-2" class="auth-phase" style="display: none;">
+        <div style="text-align: center; margin-bottom: var(--space-lg);">
+          <p class="text-muted">Verification code sent to</p>
+          <p id="phoneDisplay" style="font-weight: 600; margin: 8px 0;">+91 98765 43210</p>
+        </div>
+
+        <div class="input-group">
+          <label for="otpInput">Verification Code</label>
+          <input 
+            type="text" 
+            id="otpInput" 
+            placeholder="000000" 
+            class="auth-input"
+            maxlength="6"
+            inputmode="numeric"
+          >
+          <small class="text-muted">Enter the 6-digit code</small>
+        </div>
+
+        <button class="btn btn-primary w-full" id="verifyOtpBtn" onclick="handleVerifyOTP()">
+          Verify & Login
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+        <button class="btn btn-ghost w-full" style="margin-top: var(--space-md);" onclick="backToPhoneInput()">
+          ← Change Phone Number
+        </button>
+
+        <p class="auth-footnote">
+          <span id="resendTimer" style="display: none;">Resend in <span id="timerValue">30</span>s</span>
+          <button id="resendBtn" class="link-button" onclick="handleResendOTP()" style="display: none;">Didn't receive? Resend OTP</button>
+        </p>
+      </div>
+
+      <!-- Links -->
+      <div class="auth-links">
+        <a href="index.html" class="link-button">Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script type="module">
+    // Import Firebase configuration (SINGLE initialization point)
+    import { auth } from './firebase.js';
+    
+    // Import auth functions
+    import * as Auth from './auth.js';
+    window.Auth = Auth;
+
+    // Initialize persistence and auth state listener
+    Auth.initializePersistence();
+    Auth.initializeAuthStateListener();
+
+    // ================== PHONE VALIDATION ==================
+    const phoneInput = document.getElementById('phoneInput');
+    
+    // Get clean phone number (10 digits only)
+    function getCleanNumber() {
+      return phoneInput.value.replace(/\D/g, '').slice(-10);
+    }
+
+    // Validate phone number format
+    function isValidNumber(num) {
+      // Accept any 10-digit number, let Firebase validate the actual phone
+      return /^\d{10}$/.test(num);
+    }
+
+    // ================== PHONE INPUT HANDLING ==================
+    phoneInput.addEventListener('input', (e) => {
+      let value = e.target.value;
+
+      // Always keep +91 prefix
+      if (!value.startsWith('+91 ')) {
+        value = '+91 ' + value.replace(/^\+91\s*/, '');
+      }
+
+      // Extract only numbers after +91
+      let numberPart = value.replace('+91 ', '').replace(/[^0-9]/g, '').slice(0, 10);
+
+      e.target.value = '+91 ' + numberPart;
+    });
+
+    // Prevent deleting the +91 prefix
+    phoneInput.addEventListener('keydown', (e) => {
+      if (phoneInput.selectionStart <= 4 && (e.key === 'Backspace' || e.key === 'Delete')) {
+        e.preventDefault();
+      }
+    });
+
+    // OTP auto-submit
+    document.getElementById('otpInput').addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+      
+      if (e.target.value.length === 6) {
+        setTimeout(() => handleVerifyOTP(), 100);
+      }
+    });
+
+    // ================== PREVENT ERROR SPAM ==================
+    let isProcessing = false;
+    let recaptchaReady = false;
+
+    // Initialize reCAPTCHA after page load
+    window.addEventListener('load', () => {
+      try {
+        window.recaptchaVerifier = new window.RecaptchaVerifier(
+          auth,
+          'recaptcha-container',
+          { size: 'invisible' }
+        );
+        recaptchaReady = true;
+        console.log('✓ reCAPTCHA initialized');
+      } catch (err) {
+        console.error('reCAPTCHA init error:', err);
+      }
+    });
+
+    // Make functions global
+    window.handleSendOTP = handleSendOTP;
+    window.handleVerifyOTP = handleVerifyOTP;
+    window.handleResendOTP = handleResendOTP;
+    window.backToPhoneInput = backToPhoneInput;
+
+    // ================== SEND OTP (NO SPAM) ==================
+    async function handleSendOTP() {
+      // CRITICAL: Prevent multiple clicks
+      if (isProcessing) return;
+      isProcessing = true;
+
+      try {
+        // Get clean phone number
+        const cleanNumber = getCleanNumber();
+
+        // Validate phone number
+        if (!isValidNumber(cleanNumber)) {
+          showToast('error', 'Invalid Phone', 'Please enter a valid 10-digit number (starting with 6-9)');
+          isProcessing = false;
+          return;
+        }
+
+        // Format for Firebase: +917738427824 (NO SPACES)
+        const phoneNumber = '+91' + cleanNumber;
+
+        const sendBtn = document.getElementById('sendOtpBtn');
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending...';
+
+        // Check reCAPTCHA
+        if (!recaptchaReady || !window.recaptchaVerifier) {
+          throw new Error('reCAPTCHA not ready');
+        }
+
+        // Send OTP
+        const result = await Auth.sendOTP(phoneNumber);
+
+        if (result.success) {
+          showToast('success', 'OTP Sent', 'Check your SMS for the verification code');
+          document.getElementById('phoneDisplay').textContent = phoneNumber;
+          showPhase(2);
+          startResendTimer();
+        } else {
+          showToast('error', 'Failed', result.message);
+        }
+
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = `
+          Send OTP
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        `;
+      } catch (err) {
+        console.error('Send OTP error:', err);
+        showToast('error', 'Error', 'Failed to send OTP. Please try again.');
+      } finally {
+        isProcessing = false;
+      }
+    }
+
+    // ================== VERIFY OTP ==================
+    async function handleVerifyOTP() {
+      // Prevent double submission
+      if (isProcessing) return;
+      isProcessing = true;
+
+      try {
+        const otpInput = document.getElementById('otpInput').value.trim();
+
+        if (!otpInput || otpInput.length !== 6) {
+          showToast('error', 'Invalid OTP', 'Please enter a 6-digit code');
+          isProcessing = false;
+          return;
+        }
+
+        const verifyBtn = document.getElementById('verifyOtpBtn');
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
+
+        const result = await Auth.verifyOTP(otpInput);
+
+        if (rRegular users always go to events.html
+          console.log('✓ User login successful - Redirecting to events.html');
+          
+          setTimeout(() => {
+            window.location.href = 'events.html'rectPage);
+          
+          setTimeout(() => {
+            window.location.href = redirectPage;
+          }, 1000);
+        } else {
+          showToast('error', 'Failed', result.message);
+          verifyBtn.disabled = false;
+          verifyBtn.innerHTML = `
+            Verify & Login
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          `;
+        }
+      } catch (err) {
+        console.error('Verify OTP error:', err);
+        showToast('error', 'Error', 'Verification failed. Please try again.');
+      } finally {
+        isProcessing = false;
+      }
+    }
+
+    // ================== RESEND OTP ==================
+    async function handleResendOTP() {
+      if (isProcessing) return;
+      isProcessing = true;
+
+      try {
+        const cleanNumber = getCleanNumber();
+        const phoneNumber = '+91' + cleanNumber;
+        
+        const result = await Auth.sendOTP(phoneNumber);
+
+        if (result.success) {
+          showToast('success', 'OTP Resent', 'Check your SMS');
+          startResendTimer();
+        } else {
+          showToast('error', 'Failed', result.message);
+        }
+      } catch (err) {
+        console.error('Resend OTP error:', err);
+        showToast('error', 'Error', 'Failed to resend OTP');
+      } finally {
+        isProcessing = false;
+      }
+    }
+
+    function backToPhoneInput() {
+      if (isProcessing) return;
+      document.getElementById('otpInput').value = '';
+      showPhase(1);
+      clearResendTimer();
+    }
+
+    function showPhase(phase) {
+      document.getElementById('phase-1').style.display = phase === 1 ? 'block' : 'none';
+      document.getElementById('phase-2').style.display = phase === 2 ? 'block' : 'none';
+
+      if (phase === 2) {
+        setTimeout(() => document.getElementById('otpInput').focus(), 100);
+      } else {
+        setTimeout(() => document.getElementById('phoneInput').focus(), 100);
+      }
+    }
+
+    let resendTimer = null;
+    function startResendTimer() {
+      const resendBtn = document.getElementById('resendBtn');
+      const timerDisplay = document.getElementById('resendTimer');
+      const timerValue = document.getElementById('timerValue');
+      
+      resendBtn.style.display = 'none';
+      timerDisplay.style.display = 'inline';
+      
+      let seconds = 30;
+      timerValue.textContent = seconds;
+
+      resendTimer = setInterval(() => {
+        seconds--;
+        timerValue.textContent = seconds;
+
+        if (seconds === 0) {
+          clearInterval(resendTimer);
+          timerDisplay.style.display = 'none';
+          resendBtn.style.display = 'inline';
+        }
+      }, 1000);
+    }
+
+    function clearResendTimer() {
+      if (resendTimer) {
+        clearInterval(resendTimer);
+        document.getElementById('resendBtn').style.display = 'none';
+        document.getElementById('resendTimer').style.display = 'none';
+      }
+    }
+
+    // ================== TOAST NOTIFICATIONS ==================
+    function showToast(type, title, message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : type === 'error' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+      const borderColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+      const textColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+
+      toast.style.cssText = `
+        background: ${bgColor};
+        border-left: 4px solid ${borderColor};
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        animation: slideIn 0.3s ease;
+      `;
+
+      toast.innerHTML = `
+        <div style="color: ${textColor}; font-weight: 600; margin-bottom: 4px;">${title}</div>
+        <div style="color: var(--text-muted); font-size: 0.875rem;">${message}</div>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    // ================== PARTICLES ==================
+    function initParticles() {
+      const container = document.getElementById('particles');
+      if (!container) return;
+
+      for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+        container.appendChild(particle);
+      }
+    }
+
+    initParticles();
+  </script>
+
+  <style>
+    .auth-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .auth-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 48px;
+      width: 100%;
+      max-width: 420px;
+      backdrop-filter: blur(10px);
+    }
+
+    .auth-logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 32px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1));
+      border-radius: 12px;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    .auth-logo svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .auth-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-align: center;
+      margin: 0 0 8px 0;
+    }
+
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin: 0 0 32px 0;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(51, 65, 85, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .auth-input:focus {
+      background: rgba(51, 65, 85, 0.8);
+      border-color: rgba(139, 92, 246, 0.5);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    .auth-input::placeholder {
+      color: rgba(148, 163, 184, 0.5);
+    }
+
+    .auth-phase {
+      animation: fadeIn 0.3s ease;
+    }
+
+    .auth-footnote {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 16px;
+      margin-bottom: 0;
+    }
+
+    .auth-links {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .link-button {
+      background: none;
+      border: none;
+      color: rgba(139, 92, 246, 1);
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .link-button:hover {
+      color: rgba(6, 182, 212, 1);
+      text-decoration: underline;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+      .auth-card {
+        padding: 32px 20px;
+      }
+
+      .auth-title {
+        font-size: 24px;
+      }
+    }
+  </style>
+</body>
+</html>

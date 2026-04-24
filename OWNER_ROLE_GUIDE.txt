@@ -1,0 +1,244 @@
+// ============================================
+// ROLE SYSTEM DOCUMENTATION
+// RAAS DANDIYA EVENT - Owner Role Support
+// ============================================
+
+UPDATED: April 24, 2026
+VERSION: 2.0 - Owner Role Support
+
+============================================
+1. AVAILABLE ROLES
+============================================
+
+"user"
+  - Default role for all new users
+  - Can browse events (no login required)
+  - Can book tickets (login required)
+  - Can view own tickets only
+  - Can download own QR codes
+  - Can manage own profile
+  - Access: index.html, events.html, tickets.html, profile.html
+
+"admin"
+  - Can manage all events
+  - Can view all tickets
+  - Can create/edit/delete events
+  - Can view analytics
+  - Cannot scan tickets
+  - Access: admin.html + user features
+
+"scanner"
+  - Can scan QR codes
+  - Can verify tickets
+  - Can mark tickets as used
+  - Cannot manage events
+  - Cannot view analytics
+  - Access: scan.html + user features
+
+"owner" ⭐ NEW
+  - FULL ACCESS to everything
+  - All admin rights (event management)
+  - All scanner rights (QR scanning)
+  - All user rights (booking, profile)
+  - Can do everything without role switching
+  - Intended for: System owner/primary administrator
+  - Access: admin.html, scan.html, user pages
+
+============================================
+2. ROLE COMPARISON TABLE
+============================================
+
+Feature              | user | admin | scanner | owner
+---------------------|------|-------|---------|-------
+Browse events        |  ✓   |   ✓   |    ✓    |   ✓
+Book tickets         |  ✓   |   ✓   |    ✓    |   ✓
+View own tickets     |  ✓   |   ✓   |    ✓    |   ✓
+View all tickets     |      |   ✓   |         |   ✓
+Manage profile       |  ✓   |   ✓   |    ✓    |   ✓
+Create events        |      |   ✓   |         |   ✓
+Edit events          |      |   ✓   |         |   ✓
+Delete events        |      |   ✓   |         |   ✓
+View analytics       |      |   ✓   |         |   ✓
+Scan QR codes        |      |       |    ✓    |   ✓
+Mark tickets used    |      |       |    ✓    |   ✓
+Full system access   |      |       |         |   ✓
+
+============================================
+3. PAGE ACCESS RULES
+============================================
+
+index.html
+  - Role required: NONE (public)
+  - Auth required: NO
+  - All users can access
+
+events.html
+  - Role required: NONE (public)
+  - Auth required: NO
+  - All users can browse events
+  - Auth required for booking
+
+tickets.html
+  - Role required: user, admin, scanner, owner
+  - Auth required: YES
+  - Redirects to login if not authenticated
+  - Shows only user's own tickets
+
+profile.html
+  - Role required: user, admin, scanner, owner
+  - Auth required: YES
+  - Redirects to login if not authenticated
+  - Users can manage own account
+
+admin.html
+  - Role required: admin OR owner ⭐
+  - Auth required: YES
+  - Redirects if not authorized
+  - Event management, analytics
+
+scan.html
+  - Role required: scanner OR admin OR owner ⭐
+  - Auth required: YES
+  - Redirects if not authorized
+  - QR code scanning, ticket validation
+
+============================================
+4. CODE IMPLEMENTATION
+============================================
+
+In auth.js:
+
+// Check if user has admin access (admin OR owner)
+export function hasAdminRole() {
+  return window.currentUserRole === 'admin' || 
+         window.currentUserRole === 'owner';
+}
+
+// Check if user has scanner access (scanner OR admin OR owner)
+export function hasScannerRole() {
+  return window.currentUserRole === 'scanner' || 
+         window.currentUserRole === 'admin' || 
+         window.currentUserRole === 'owner';
+}
+
+// Check if user is owner
+export function isOwner() {
+  return window.currentUserRole === 'owner';
+}
+
+In admin.js role check:
+
+if (userRole !== 'admin' && userRole !== 'owner') {
+  console.warn('User does not have admin access. Redirecting...');
+  window.location.href = 'index.html';
+  return;
+}
+
+In scan.js role check:
+
+if (userRole !== 'scanner' && userRole !== 'admin' && userRole !== 'owner') {
+  console.warn('User does not have scanner access. Redirecting...');
+  window.location.href = 'index.html';
+  return;
+}
+
+============================================
+5. FIRESTORE STRUCTURE
+============================================
+
+users/{uid}
+{
+  userId: "uid",
+  phone: "+91...",
+  role: "user" | "admin" | "scanner" | "owner",
+  createdAt: timestamp,
+  lastLogin: timestamp,
+  updatedAt: timestamp
+}
+
+============================================
+6. HOW TO ASSIGN OWNER ROLE
+============================================
+
+Step 1: Login with your phone number
+  - Complete OTP verification
+  - Account auto-created in Firestore
+
+Step 2: Get your UID
+  - Check Firebase Console → Authentication
+  - Find your phone number
+  - Copy the User ID
+
+Step 3: Update user role in Firestore
+  - Go to Firebase Console → Firestore
+  - Go to "users" collection
+  - Find document with ID = your UID
+  - Edit the document
+  - Change "role" field to "owner"
+  - Save
+
+Step 4: Refresh the application
+  - Full access will be available immediately
+  - Can now access admin.html
+  - Can now access scan.html
+  - Can also use user features
+
+============================================
+7. SECURITY NOTES
+============================================
+
+✓ Role is stored in Firestore (database)
+✓ Role is NOT stored in client-side localStorage
+✓ Role is verified on every page load
+✓ Firestore Security Rules enforce role-based access
+✓ Cannot bypass rules from frontend
+✓ Owner role has no additional risks
+✓ All actions are logged in Firestore audit trail
+
+============================================
+8. MULTIPLE OWNER SUPPORT
+============================================
+
+To grant owner access to multiple users:
+
+1. Get each user's UID from Firebase Authentication
+2. In Firestore, set their role to "owner"
+3. Each will have full system access
+
+Example:
+users/user1UID → role: "owner"
+users/user2UID → role: "owner"
+users/user3UID → role: "admin" (limited to events only)
+
+============================================
+9. CHANGING ROLES
+============================================
+
+To change a user's role:
+
+1. Go to Firebase Console → Firestore
+2. Go to "users" collection
+3. Find the user document
+4. Edit the "role" field
+5. Save changes
+
+User will have new permissions after next page refresh
+
+============================================
+10. TROUBLESHOOTING
+============================================
+
+Q: User can't access admin.html
+A: Check user role is "admin" OR "owner" in Firestore
+
+Q: User can't access scan.html
+A: Check user role is "scanner" OR "admin" OR "owner"
+
+Q: Changes not taking effect
+A: Refresh the browser page after role update
+
+Q: User redirected to home
+A: Insufficient permissions for that page
+
+Q: Firestore rules error
+A: Ensure rules are properly configured in Firebase Console

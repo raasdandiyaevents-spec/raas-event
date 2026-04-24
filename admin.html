@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal - RAAS DANDIYA EVENT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Admin Navigation -->
+  <nav class="navbar admin-navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="gradient1" x1="2" y1="2" x2="22" y2="22">
+              <stop stop-color="#8b5cf6"/>
+              <stop offset="1" stop-color="#06b6d4"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        RAAS DANDIYA EVENT - Admin
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="#" onclick="switchAdminTab('events')">All Events</a></li>
+        <li><a href="#" onclick="switchAdminTab('create')">Create Event</a></li>
+        <li><a href="#" onclick="switchAdminTab('guests')">Guest List</a></li>
+        <li><a href="#" onclick="switchAdminTab('analytics')">Analytics</a></li>
+      </ul>
+      
+      <div class="nav-actions">
+        <button class="btn btn-ghost" onclick="logoutAdmin()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+          </svg>
+          Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Admin Content -->
+  <div class="admin-container">
+    <!-- All Events Tab -->
+    <section id="events-tab" class="admin-tab active">
+      <div class="section-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h1>Manage Events</h1>
+            <p>View and manage all your created events</p>
+          </div>
+          <button class="btn btn-primary" onclick="switchAdminTab('create')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Create Event
+          </button>
+        </div>
+      </div>
+
+      <div class="events-grid" id="adminEventsList">
+        <!-- Events will be populated here -->
+      </div>
+    </section>
+
+    <!-- Create Event Tab -->
+    <section id="create-tab" class="admin-tab">
+      <div class="section-header">
+        <h1>Create New Event</h1>
+        <p>Create a professional event listing</p>
+      </div>
+
+      <div class="create-event-form-container">
+        <form id="createEventForm" onsubmit="handleCreateEvent(event)">
+          <!-- Basic Info Section -->
+          <div class="form-section">
+            <h3>Event Details</h3>
+            
+            <div class="form-group">
+              <label for="eventTitle">Event Title *</label>
+              <input 
+                type="text" 
+                id="eventTitle" 
+                placeholder="Enter event title (e.g., Coldplay Concert)" 
+                required
+              >
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="eventCategory">Category *</label>
+                <select id="eventCategory" required>
+                  <option value="">Select Category</option>
+                  <option value="concert">Concert</option>
+                  <option value="garba">Garba</option>
+                  <option value="tech">Tech</option>
+                  <option value="party">Party</option>
+                  <option value="comedy">Comedy</option>
+                  <option value="sports">Sports</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="eventDate">Date *</label>
+                <input type="date" id="eventDate" required>
+              </div>
+
+              <div class="form-group">
+                <label for="eventTime">Time *</label>
+                <input type="time" id="eventTime" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="eventLocation">Location *</label>
+              <input 
+                type="text" 
+                id="eventLocation" 
+                placeholder="e.g., Madison Square Garden, NYC" 
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="eventDescription">Description *</label>
+              <textarea 
+                id="eventDescription" 
+                rows="5" 
+                placeholder="Write a detailed description of your event..." 
+                required
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Venue Section -->
+          <div class="form-section">
+            <h3>Venue Details</h3>
+            
+            <div class="form-group">
+              <label for="venueType">Venue Status *</label>
+              <select id="venueType" onchange="updateVenueOptions()" required>
+                <option value="tbd">To Be Decided (TBD)</option>
+                <option value="decided">Venue Confirmed</option>
+              </select>
+            </div>
+            
+            <div id="manualVenueSection" style="display: none;">
+              <div class="form-group">
+                <label for="venueName">Venue Name *</label>
+                <input 
+                  type="text" 
+                  id="venueName" 
+                  placeholder="e.g., The Grand Hall, Mumbai" 
+                >
+              </div>
+              
+              <div class="form-group">
+                <label for="venueAddress">Complete Address *</label>
+                <input 
+                  type="text" 
+                  id="venueAddress" 
+                  placeholder="e.g., Bandra, Mumbai, India" 
+                >
+              </div>
+              
+              <div style="background: var(--bg-tertiary); padding: var(--space-lg); border-radius: var(--radius-lg); margin-top: var(--space-lg);">
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--space-sm);">📍 Google Maps will be embedded automatically once event is created</p>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Customers will be able to see the venue location on Google Maps when viewing the event</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Banner Upload Section -->
+          <div class="form-section">
+            <h3>Event Banner</h3>
+            
+            <div class="banner-upload-area" onclick="document.getElementById('bannerInput').click()">
+              <input 
+                type="file" 
+                id="bannerInput" 
+                accept="image/*" 
+                style="display: none;" 
+                onchange="handleBannerUpload(event)"
+              >
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              <p id="bannerText">Click to upload banner image</p>
+              <span class="upload-hint">Recommended: 1200x400px, Max 5MB</span>
+            </div>
+            
+            <div id="bannerPreview" class="banner-preview" style="display: none;">
+              <img id="bannerImg" src="" alt="Banner preview">
+              <button type="button" class="btn btn-sm btn-danger" onclick="removeBanner()">Remove</button>
+            </div>
+          </div>
+
+          <!-- Pricing & Tickets Section -->
+          <div class="form-section">
+            <h3>Ticket Pricing & Types</h3>
+            <p style="color: var(--text-muted); margin-bottom: var(--space-lg);">Add different ticket categories for your event</p>
+            
+            <div class="tickets-grid" id="ticketsContainer">
+              <!-- Ticket types will be added here -->
+            </div>
+
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addTicketType()">
+              + Add Ticket Type
+            </button>
+          </div>
+
+          <!-- Event Status -->
+          <div class="form-section">
+            <h3>Event Status</h3>
+            <p style="color: var(--text-muted); margin-bottom: var(--space-md);">Set the initial status for your event</p>
+            
+            <div class="form-group">
+              <label for="eventStatus">Status *</label>
+              <select id="eventStatus" required>
+                <option value="active">🟢 Active</option>
+                <option value="postponed">🟡 Postponed</option>
+                <option value="cancelled">🔴 Cancelled</option>
+                <option value="inactive">⭕ Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Additional Options -->
+          <div class="form-section">
+            <h3>Additional Options</h3>
+            
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="isFeatured">
+                <span>Feature this event (appears on homepage)</span>
+              </label>
+              
+              <label class="checkbox-label">
+                <input type="checkbox" id="limitedSeats">
+                <span>Mark as Limited Seats</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="reset" class="btn btn-ghost">Clear Form</button>
+            <button type="submit" class="btn btn-primary btn-lg">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              Create Event
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Guest List Tab -->
+    <section id="guests-tab" class="admin-tab">
+      <div class="section-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-lg); flex-wrap: wrap;">
+          <div>
+            <h1>Guest List & Attendees</h1>
+            <p>View all ticket holders and attendance records</p>
+          </div>
+          <div style="display: flex; gap: var(--space-sm);">
+            <button class="btn btn-secondary" onclick="exportGuestListCSV()" title="Download as CSV">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download CSV
+            </button>
+            <button class="btn btn-secondary" onclick="refreshGuestList()" title="Refresh guest list">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2-8.83"></path>
+              </svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters Section -->
+      <div class="glass-card" style="padding: var(--space-lg); margin-bottom: var(--space-lg); display: flex; gap: var(--space-md); align-items: end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px;">
+          <label style="display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: var(--space-sm);">Filter by Event</label>
+          <select id="guestListEventFilter" onchange="filterGuestList()" style="width: 100%; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); color: var(--text-primary); font-weight: 500;">
+            <option value="">All Events</option>
+          </select>
+        </div>
+        
+        <div style="flex: 1; min-width: 250px;">
+          <label style="display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: var(--space-sm);">Filter by Status</label>
+          <select id="guestListStatusFilter" onchange="filterGuestList()" style="width: 100%; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); color: var(--text-primary); font-weight: 500;">
+            <option value="">All Status</option>
+            <option value="used">✓ Used</option>
+            <option value="pending">⏳ Pending</option>
+          </select>
+        </div>
+
+        <div style="flex: 1; min-width: 250px;">
+          <label style="display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: var(--space-sm);">Search by Name/Email</label>
+          <input type="text" id="guestListSearchInput" placeholder="Search..." onkeyup="filterGuestList()" style="width: 100%; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); color: var(--text-primary);">
+        </div>
+      </div>
+
+      <!-- Guest List Table -->
+      <div class="glass-card" style="padding: var(--space-lg); overflow-x: auto;">
+        <div id="guestListContainer" style="min-height: 300px;">
+          <p style="text-align: center; color: var(--text-muted); padding: var(--space-2xl);">Loading guest list...</p>
+        </div>
+      </div>
+
+      <!-- Summary Stats -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-lg); margin-top: var(--space-lg);">
+        <div class="glass-card" style="padding: var(--space-lg); text-align: center;">
+          <p style="color: var(--text-muted); margin: 0 0 var(--space-sm) 0; font-size: 0.875rem;">Total Tickets</p>
+          <p class="analytics-value" id="guestListTotalTickets" style="margin: 0;">0</p>
+        </div>
+        <div class="glass-card" style="padding: var(--space-lg); text-align: center;">
+          <p style="color: var(--text-muted); margin: 0 0 var(--space-sm) 0; font-size: 0.875rem;">Checked In</p>
+          <p class="analytics-value" id="guestListUsedTickets" style="margin: 0; color: #22c55e;">0</p>
+        </div>
+        <div class="glass-card" style="padding: var(--space-lg); text-align: center;">
+          <p style="color: var(--text-muted); margin: 0 0 var(--space-sm) 0; font-size: 0.875rem;">Pending</p>
+          <p class="analytics-value" id="guestListPendingTickets" style="margin: 0; color: #eab308;">0</p>
+        </div>
+        <div class="glass-card" style="padding: var(--space-lg); text-align: center;">
+          <p style="color: var(--text-muted); margin: 0 0 var(--space-sm) 0; font-size: 0.875rem;">Total Revenue</p>
+          <p class="analytics-value" id="guestListTotalRevenue" style="margin: 0; font-size: 1.5rem;">₹0</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analytics Tab -->
+    <section id="analytics-tab" class="admin-tab">
+      <div class="section-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-lg);">
+          <div>
+            <h1>Analytics Dashboard</h1>
+            <p>Real-time business analytics and insights</p>
+          </div>
+          <button class="btn btn-secondary" onclick="refreshAnalyticsNow()" title="Refresh analytics data">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <path d="M20.49 15a9 9 0 1 1-2-8.83"></path>
+            </svg>
+            Refresh Now
+          </button>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="analytics-card">
+          <h4>Total Events</h4>
+          <p class="analytics-value" id="totalEvents">0</p>
+        </div>
+        <div class="analytics-card">
+          <h4>Active Events</h4>
+          <p class="analytics-value" id="activeEvents">0</p>
+        </div>
+        <div class="analytics-card">
+          <h4>Total Tickets Sold</h4>
+          <p class="analytics-value" id="totalTickets">0</p>
+        </div>
+        <div class="analytics-card">
+          <h4>Checked In</h4>
+          <p class="analytics-value" id="usedTickets" style="color: #22c55e;">0</p>
+        </div>
+        <div class="analytics-card">
+          <h4>Pending Tickets</h4>
+          <p class="analytics-value" id="pendingTickets" style="color: #eab308;">0</p>
+        </div>
+        <div class="analytics-card">
+          <h4>Total Revenue</h4>
+          <p class="analytics-value" id="totalRevenue">₹0</p>
+        </div>
+      </div>
+
+      <!-- Per-Event Statistics -->
+      <div style="margin-top: var(--space-2xl);">
+        <h3 style="margin-bottom: var(--space-lg);">Per-Event Statistics</h3>
+        <div id="perEventStatsContainer" class="recent-activity-grid">
+          <div class="glass-card" style="grid-column: 1/-1; padding: var(--space-lg);">
+            <p style="color: var(--text-muted); text-align: center; padding: var(--space-lg);">Loading...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity Section -->
+      <div class="recent-activity-grid" style="margin-top: var(--space-2xl);">
+
+        <!-- Recent Tickets -->
+        <div class="glass-card" style="padding: var(--space-lg);">
+          <div id="recentTicketsContainer">
+            <p style="color: var(--text-muted); text-align: center; padding: var(--space-lg);">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Recent Events -->
+        <div class="glass-card" style="padding: var(--space-lg);">
+          <div id="recentEventsContainer">
+            <p style="color: var(--text-muted); text-align: center; padding: var(--space-lg);">Loading...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto-Refresh Info -->
+      <div style="margin-top: var(--space-2xl); padding: var(--space-lg); background: rgba(34, 197, 94, 0.1); border-left: 3px solid #22c55e; border-radius: var(--radius-lg); color: var(--text-secondary);">
+        <p style="margin: 0; font-size: 0.875rem;">
+          ✓ <strong>Auto-refresh enabled:</strong> Analytics updates every 60 minutes with live data from Firebase
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Ticket Preview Modal -->
+  <div id="ticketModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeTicketModal()">×</button>
+      <div class="ticket-preview">
+        <h2 id="modalTicketTitle">Ticket Preview</h2>
+        <div id="qrCodeContainer" class="qr-code-container"></div>
+        <div id="ticketDetails" class="ticket-details"></div>
+        <button class="btn btn-primary" onclick="downloadTicket()">Download Ticket</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

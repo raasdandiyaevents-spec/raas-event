@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAAS DANDIYA EVENT - Premium Event Ticketing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="gradient1" x1="2" y1="2" x2="22" y2="22">
+              <stop stop-color="#8b5cf6"/>
+              <stop offset="1" stop-color="#06b6d4"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        RAAS DANDIYA EVENT
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="tickets.html">My Tickets</a></li>
+        <li><a href="profile.html" id="profileLink" style="display: none;">Profile</a></li>
+      </ul>
+      
+      <div class="nav-actions">
+        <button class="btn btn-primary" id="loginBtn" onclick="window.location.href='login.html'">
+          Login
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+        <button class="btn btn-secondary" id="logoutBtn" onclick="handleLogout()" style="display: none;">
+          Logout
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+          </svg>
+        </button>
+        <button class="btn btn-primary" onclick="window.location.href='events.html'" id="exploreBtn">
+          Explore Events
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Navigation -->
+  <nav class="mobile-nav">
+    <div class="mobile-nav-items">
+      <a href="index.html" class="mobile-nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Home
+      </a>
+      <a href="events.html" class="mobile-nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Events
+      </a>
+      <a href="tickets.html" class="mobile-nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 9a3 3 0 015-2.236A3 3 0 019.5 9a3 3 0 005.196 2.236A3 3 0 0017 9a3 3 0 015 2.236V15a2 2 0 01-2 2H4a2 2 0 01-2-2V9z"/>
+          <path d="M2 17v2a2 2 0 002 2h16a2 2 0 002-2v-2"/>
+        </svg>
+        Tickets
+      </a>
+    </div>
+  </nav>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ==================== LANDING PAGE ==================== -->
+  <main id="landing-page" class="page active">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-badge animate-fadeInUp">
+          <span></span>
+          Premium Event Ticketing Platform
+        </div>
+        
+        <h1 class="hero-title">
+          Experience Events <span class="highlight">Like Never Before</span>
+        </h1>
+        
+        <p class="hero-subtitle">
+          Book. Scan. Enjoy. Discover amazing events, secure your tickets instantly, 
+          and create unforgettable memories.
+        </p>
+        
+        <div class="hero-cta">
+          <button class="btn btn-primary" onclick="window.location.href='events.html'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            Explore Events
+          </button>
+        </div>
+        
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-value">2.5M+</div>
+            <div class="hero-stat-label">Tickets Sold</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-value">150K+</div>
+            <div class="hero-stat-label">Happy Users</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-value">5K+</div>
+            <div class="hero-stat-label">Events Hosted</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Events Section -->
+    <section class="section" id="featured">
+      <div class="section-header">
+        <span class="section-badge">Featured Events</span>
+        <h2 class="section-title">Trending <span class="text-gradient">Right Now</span></h2>
+        <p class="section-subtitle">Discover the hottest events happening near you. Book your tickets before they sell out!</p>
+      </div>
+      
+      <div class="events-grid" id="featured-events-grid">
+        <!-- Events will be populated by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="section" id="categories">
+      <div class="section-header">
+        <span class="section-badge">Browse by Category</span>
+        <h2 class="section-title">Find Your <span class="text-gradient">Perfect Event</span></h2>
+        <p class="section-subtitle">From concerts to tech conferences, we've got something for everyone.</p>
+      </div>
+      
+      <div class="categories-grid">
+        <div class="category-card hover-lift" onclick="window.location.href='events.html?category=concert'">
+          <div class="category-icon">🎵</div>
+          <h3 class="category-title">Concerts</h3>
+          <p class="category-count">128 events</p>
+        </div>
+        <div class="category-card hover-lift" onclick="window.location.href='events.html?category=garba'">
+          <div class="category-icon">💃</div>
+          <h3 class="category-title">Garba Nights</h3>
+          <p class="category-count">45 events</p>
+        </div>
+        <div class="category-card hover-lift" onclick="window.location.href='events.html?category=party'">
+          <div class="category-icon">🎉</div>
+          <h3 class="category-title">Parties</h3>
+          <p class="category-count">89 events</p>
+        </div>
+        <div class="category-card hover-lift" onclick="window.location.href='events.html?category=tech'">
+          <div class="category-icon">💻</div>
+          <h3 class="category-title">Tech Events</h3>
+          <p class="category-count">67 events</p>
+        </div>
+        <div class="category-card hover-lift" onclick="window.location.href='events.html?category=sports'">
+          <div class="category-icon">⚽</div>
+          <h3 class="category-title">Sports</h3>
+          <p class="category-count">52 events</p>
+        </div>
+        <div class="category-card hover-lift" onclick="window.location.href='events.html?category=comedy'">
+
+          <div class="category-icon">😂</div>
+          <h3 class="category-title">Comedy Shows</h3>
+          <p class="category-count">34 events</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="section" id="testimonials">
+      <div class="section-header">
+        <span class="section-badge">Testimonials</span>
+        <h2 class="section-title">What People <span class="text-gradient">Are Saying</span></h2>
+        <p class="section-subtitle">Join thousands of happy event-goers who trust NinjaTickets.</p>
+      </div>
+      
+      <div class="testimonials-grid">
+        <div class="testimonial-card glass-card">
+          <div class="testimonial-stars">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <p class="testimonial-text">"NinjaTickets made booking concert tickets so easy! The QR code entry is seamless and the UI is absolutely beautiful."</p>
+          <div class="testimonial-author">
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="Sarah" class="testimonial-avatar">
+            <div>
+              <div class="testimonial-name">Sarah Johnson</div>
+              <div class="testimonial-role">Concert Enthusiast</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-card glass-card">
+          <div class="testimonial-stars">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <p class="testimonial-text">"As an event organizer, this platform has everything I need. The analytics dashboard is incredibly detailed and helpful."</p>
+          <div class="testimonial-author">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="Michael" class="testimonial-avatar">
+            <div>
+              <div class="testimonial-name">Michael Chen</div>
+              <div class="testimonial-role">Event Organizer</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-card glass-card">
+          <div class="testimonial-stars">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <p class="testimonial-text">"The scanner feature is a game-changer! No more paper tickets - just scan and go. Super fast entry at events."</p>
+          <div class="testimonial-author">
+            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" alt="Emily" class="testimonial-avatar">
+            <div>
+              <div class="testimonial-name">Emily Rodriguez</div>
+              <div class="testimonial-role">Party Planner</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="padding: var(--space-3xl) var(--space-2xl); text-align: center; border-top: 1px solid var(--glass-border);">
+      <div class="nav-logo" style="justify-content: center; margin-bottom: var(--space-xl);">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#gradient2)" stroke-width="2"/>
+          <path d="M2 17L12 22L22 17" stroke="url(#gradient2)" stroke-width="2"/>
+          <path d="M2 12L12 17L22 12" stroke="url(#gradient2)" stroke-width="2"/>
+          <defs>
+            <linearGradient id="gradient2" x1="2" y1="2" x2="22" y2="22">
+              <stop stop-color="#8b5cf6"/>
+              <stop offset="1" stop-color="#06b6d4"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        NinjaTickets
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: var(--space-lg);">© 2024 NinjaTickets. All rights reserved.</p>
+      <div style="display: flex; justify-content: center; gap: var(--space-xl);">
+        <a href="#" style="color: var(--text-muted);">Privacy</a>
+        <a href="#" style="color: var(--text-muted);">Terms</a>
+        <a href="#" style="color: var(--text-muted);">Support</a>
+        <a href="#" style="color: var(--text-muted);">Contact</a>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Event Details Page -->
+  <main id="event-details-page" class="page" style="display: none;">
+    <div id="event-details-content"></div>
+  </main>
+
+  <!-- Checkout Page -->
+  <main id="checkout-page" class="page" style="display: none;">
+    <div style="max-width: 1000px; margin: 0 auto; padding: var(--space-2xl) var(--space-xl);">
+      <button class="btn btn-secondary" style="margin-bottom: var(--space-lg);" onclick="window.history.back()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </button>
+      
+      <div style="display: grid; grid-template-columns: 1fr 350px; gap: var(--space-2xl);">
+        <div>
+          <div id="checkout-content"></div>
+        </div>
+        <div style="height: fit-content;">
+          <div class="glass-card" style="padding: var(--space-lg);">
+            <h3 style="margin-bottom: var(--space-lg);">Order Progress</h3>
+            <div id="progress-steps">
+              <div id="step-1" class="progress-step active">
+                <div class="step-number">1</div>
+                <div class="step-label">Order Summary</div>
+              </div>
+              <div id="step-2" class="progress-step">
+                <div class="step-number">2</div>
+                <div class="step-label">Payment</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Confirmation Page -->
+  <main id="confirmation-page" class="page" style="display: none;">
+    <div id="confirmation-details" style="max-width: 800px; margin: 0 auto; padding: var(--space-3xl) var(--space-xl);"></div>
+  </main>
+
+  <script type="module" src="app.js"></script>
+  
+  <script type="module">
+    import * as Auth from './auth.js';
+    window.Auth = Auth;
+
+    // Initialize auth listener
+    Auth.initializeAuthStateListener();
+
+    // Update nav buttons based on auth state
+    window.addEventListener('authStateChanged', (event) => {
+      const { user, role } = event.detail;
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const profileLink = document.getElementById('profileLink');
+
+      if (user) {
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-flex';
+        profileLink.style.display = 'inline';
+      } else {
+        loginBtn.style.display = 'inline-flex';
+        logoutBtn.style.display = 'none';
+        profileLink.style.display = 'none';
+      }
+    });
+
+    window.handleLogout = async function() {
+      const result = await Auth.logout();
+      if (result.success) {
+        window.location.href = 'index.html';
+      }
+    };
+  </script>
+</body>
+</html>
